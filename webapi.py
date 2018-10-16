@@ -16,7 +16,6 @@ import torch.nn as nn
 
 app = Flask('__HGR__')
 
-IMGS_Array = []
 # load config file
 with open('./configs/config2.json') as data_file:
     config = json.load(data_file)
@@ -34,7 +33,7 @@ transform = Compose([
     ])
 
 loader = RunTimeDataSet()
-    # save_images_for_debug("input_images", data_item.unsqueeze(0))
+# save_images_for_debug("input_images", data_item.unsqueeze(0))
 val_loader = torch.utils.data.DataLoader(
         loader,
         batch_size=1, shuffle=False,
@@ -87,7 +86,6 @@ def recognize(array_img):
     return label, label_number
 
 
-
 def get_frame_names(path):
     frame_names = []
     frame_names.extend(glob.glob(os.path.join('/home/wenjin/Documents/pycharmworkspace/20bn-jester-v1/'+path, "*" + '.jpg')))
@@ -114,28 +112,28 @@ def recognition2():
             print(label_number)
             label_name = loader.dataset_object.classes_dict[label_number]
             print("output={}==name==={}".format(label_number, label_name))
-    
+    return label_name, label_number
+
 
 @app.route("/receive", methods=['GET', 'POST'])
 def receive_img():
     data = request.get_json()
     imgdata = base64.b64decode(data['imageBase64'])
-    file = open('images/{}.png'.format(len(IMGS_Array) % 18), 'wb')
+    file = open('images/{}.png'.format(len(loader.IMGS_Array) % 18), 'wb')
     file.write(imgdata)
     file.close()
     # save imgs
     image_data = BytesIO(imgdata)
     imgdata = Image.open(image_data).convert('RGB')
     # insert images
-    IMGS_Array.append(imgdata)
+    loader.IMGS_Array.append(imgdata)
     result_data = {}
-    if len(IMGS_Array) % 18 == 0:
+    if len(loader.IMGS_Array) % 18 == 0:
         # recognize
-        label, label_number = recognize(IMGS_Array)
-
+        label, label_number = recognition2()
         result_data['result'] = 'success'
         result_data['info'] = label
-        del IMGS_Array[:]
+        del loader.IMGS_Array[:]
     else:
         # cannot recognize
         result_data['result'] = 'fail'

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Hand Gesture Recognition</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+<progress id="progress_bar" value="0" max="100" style="width: 100%;height: 20%">
+
+</progress>
+<h1 id="result"></h1>
+<button id="camera">start</button>
+<button id="stop">stop</button>
+<video src="" id="video" width="480" height="400"></video>
+<!--canvs size-->
+<canvas width="120" height="100" id="outrec"></canvas>
+<!--base64 result-->
+<img id="imgvideo" style="display:none;" width="120" height="100" src=""/>
+<script type="text/javascript" language=JavaScript charset="UTF-8">
+
+
+</script>
+
+<script type="text/javascript">
+    bar_length = 0
+    image_count = 0
+    clock = null
+    switch_value = false
+    var video = document.getElementById("video");
+    //001.open camera when the dom ready
+    $(document).ready(function () {
+        var Devicestate = navigator.mediaDevices.getUserMedia({
+            video: true
+        })
+        Devicestate.then(function (mediaStream) {
+            video.src = window.URL.createObjectURL(mediaStream);
+            console.log(mediaStream)
+            video.onloadedmetadata = function (e) {
+                video.play();
+            };
+        });
+        //do not have permission to use camera
+        Devicestate.catch(function (err) {
+            console.log(err.name);
+            alert("please allow us use your camera");
+        });
+    });
+    //002. click camera
+    $('#camera').click(function () {
+        var clock = setInterval(crop_image, 200);
+        $("#stop").click(function () {
+            clearInterval(clock);
+            alert("cancer")
+        })
+    });
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 32) {    //空格
+            switch_value = !switch_value
+            if(switch_value){
+                //start
+                clock = setInterval(crop_image, 100);
+                console.log('start')
+
+            }else{
+                clearInterval(clock);
+                console.log('stop')
+                image_count=0
+            }
+
+        }
+    };
+
+    function crop_image() {
+        image_count++
+        bar_percent = (image_count+1) / 18*100;
+        $('#progress_bar').val(bar_percent)
+        //video to canvs
+        var outrec = document.getElementById("outrec");
+        var outreccon = outrec.getContext("2d");
+        outreccon.drawImage(video, 0, 0, 120, 100);
+        var img = outrec.toDataURL("image/jpeg", 0.5)
+        $('#imgvideo').attr('src', img);
+        uploadimgs('#outrec')
+        console.log('upload'+image_count)
+        if(image_count>=18){
+            clearInterval(clock);
+            console.log('stop')
+            image_count=0
+            switch_value = !switch_value
+            $('#progress_bar').val(0)
+        }
+    }
+    function uploadimgs(selector) {
+        var canvas = document.querySelector(selector)
+        img_data = canvas.toDataURL('image/png')
+        img_data = img_data.replace(/^data:image\/(png|jpg);base64,/, "")
+        load_url = 'https://10.0.126.102:5000/receive';
+
+        $.ajax({
+            type: "POST",
+            contentType: 'application/json; charset=utf-8',
+            url: load_url,
+            dataType: "json",
+            data: '{"imageBase64" :"' + img_data + '"}',
+            success: function (data) {
+                $("#result").text(data['result']['info'])
+                console.log(data['result']['info'])
+            },
+            error: function (data) {
+                alert('error')
+            }
+
+        });
+    }
+</script>
+</body>
+
+</html>
