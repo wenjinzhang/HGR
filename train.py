@@ -223,7 +223,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         loss = criterion(output, target)
 
         # measure accuracy and record loss
-        prec1, prec5 = accuracy(output.detach(), target.detach().cpu(), topk=(1, 5))
+        prec1, prec5 = accuracy(output.detach(), target.detach().cpu(), topk=(1, 3))
         losses.update(loss.item(), input.size(0))
         top1.update(prec1.item(), input.size(0))
         top5.update(prec5.item(), input.size(0))
@@ -237,7 +237,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
             print('Epoch: [{0}][{1}/{2}]\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                   'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
-                  'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+                  'Prec@3 {top5.val:.3f} ({top5.avg:.3f})'.format(
                       epoch, i, len(train_loader), loss=losses, top1=top1, top5=top5))
     return losses.avg, top1.avg, top5.avg
 
@@ -259,7 +259,7 @@ def validate(val_loader, model, criterion, class_to_idx=None):
 
             # compute output and loss
             output = model(input)
-            print("output={}====target={}".format(np.argmax(output.detach().cpu().numpy()), target.detach().cpu().numpy()))
+            # print("output={}====target={}".format(np.argmax(output.detach().cpu().numpy()), target.detach().cpu().numpy()))
             loss = criterion(output, target)
 
             if args.eval_only:
@@ -267,7 +267,7 @@ def validate(val_loader, model, criterion, class_to_idx=None):
                 targets_list.append(target.detach().cpu().numpy())
 
             # measure accuracy and record loss
-            prec1, prec5 = accuracy(output.detach(), target.detach().cpu(), topk=(1, 5))
+            prec1, prec5 = accuracy(output.detach(), target.detach().cpu(), topk=(1, 3))
             losses.update(loss.item(), input.size(0))
             top1.update(prec1.item(), input.size(0))
             top5.update(prec5.item(), input.size(0))
