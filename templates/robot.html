@@ -50,15 +50,16 @@
     });
     //002. click camera
     $('#camera').click(function () {
-        var clock = setInterval(crop_image, 70);
+        var clock = setInterval(crop_image, 200);
         $("#stop").click(function () {
             clearInterval(clock);
             alert("cancer")
         })
     });
+
     document.onkeydown = function (event) {
         var e = event || window.event || arguments.callee.caller.arguments[0];
-        if (e && e.keyCode == 32) {    //空格
+        if (e && e.keyCode == 32) {    //space key
             switch_value = !switch_value
             if(switch_value){
                 //start
@@ -98,7 +99,7 @@
         var canvas = document.querySelector(selector)
         img_data = canvas.toDataURL('image/png')
         img_data = img_data.replace(/^data:image\/(png|jpg);base64,/, "")
-        load_url = 'https://0.0.0.0:5000/receive';
+        load_url = 'https://0.0.0.0:5000/robotcontrol';
 
         $.ajax({
             type: "POST",

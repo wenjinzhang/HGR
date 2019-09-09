@@ -14,12 +14,15 @@ import os
 import glob
 import torch.nn as nn
 
-app = Flask('__HGR__')
+# global variable for robot control
+command_num = 9
+robot_num = 1
 
+app = Flask('__HGR__')
 # load config file
 with open('./configs/config2.json') as data_file:
     config = json.load(data_file)
-device = torch.device("cuda")
+device = torch.device("cpu")
 
 dataset_object = JpegDataset(config['train_data_csv'], config['labels_csv'], config['train_data_folder'])
 
@@ -44,7 +47,7 @@ val_loader = torch.utils.data.DataLoader(
 model = ConvColumn(config['num_classes'])
 # multi GPU setting
 model = torch.nn.DataParallel(model).to(device)
-checkpoint = torch.load(config['checkpoint'])
+checkpoint = torch.load(config['checkpoint'],map_location='cpu')
 start_epoch = checkpoint['epoch']
 best_prec1 = checkpoint['best_prec1']
 model.load_state_dict(checkpoint['state_dict'])
@@ -119,7 +122,7 @@ def recognition2():
 def receive_img():
     data = request.get_json()
     imgdata = base64.b64decode(data['imageBase64'])
-    file = open('images/{}.png'.format(len(loader.IMGS_Array) % 18), 'wb')
+    file = open('images/{:0>5d}.png'.format(len(loader.IMGS_Array) % 18), 'wb')
     file.write(imgdata)
     file.close()
     # save imgs
@@ -127,17 +130,61 @@ def receive_img():
     imgdata = Image.open(image_data).convert('RGB')
     # insert images
     loader.IMGS_Array.append(imgdata)
+
     result_data = {}
     if len(loader.IMGS_Array) % 18 == 0:
         # recognize
         label, label_number = recognition2()
         result_data['result'] = 'success'
-        result_data['info'] = label
+        result_data['info'] = "Your hand gesture is: "+label
+        global command_num
+        command_num = label_number
         del loader.IMGS_Array[:]
     else:
         # cannot recognize
         result_data['result'] = 'fail'
-        result_data['info'] = 'don\'t have enough numbers'
+        result_data['info'] = 'Recording Hand Gesture'
+    return jsonify(result=result_data)
+
+
+@app.route("/robotcontrol", methods=['GET', 'POST'])
+def robotControl():
+    global command_num
+    data = request.get_json()
+    imgdata = base64.b64decode(data['imageBase64'])
+    file = open('images/{:0>5d}.png'.format(len(loader.IMGS_Array) % 18), 'wb')
+    file.write(imgdata)
+    file.close()
+    # save imgs
+    image_data = BytesIO(imgdata)
+    imgdata = Image.open(image_data).convert('RGB')
+    # insert images
+    loader.IMGS_Array.append(imgdata)
+
+    result_data = {}
+    if len(loader.IMGS_Array) % 18 == 0:
+        # recognize
+
+        label, label_number = recognition2()
+        global robot_num
+        if label_number==6:
+            robot_num = 1
+            result_data['info'] = 'Robot{} is waiting for Hand Gesture'.format(robot_num)
+            command_num = 9
+        elif label_number==7:
+            robot_num = 2
+            command_num = 9
+            result_data['info'] = 'Robot{} is waiting for Hand Gesture'.format(robot_num)
+        else:
+            result_data['info'] = "Robot{} receive hand gesture is: {}".format(robot_num, label)
+        command_num = label_number
+        result_data['result'] = 'success'
+
+        del loader.IMGS_Array[:]
+    else:
+        # cannot recognize
+        result_data['result'] = 'fail'
+        result_data['info'] = 'Robot{} is waiting for Hand Gesture'.format(robot_num)
     return jsonify(result=result_data)
 
 
@@ -155,7 +202,6 @@ def test(foldname):
     data = data.permute(1, 0, 2, 3)
     data.resize_(1, 3, 18, 84, 84)
     label, label_number = model_caculate(data)
-    print(label)
     return 'label:{},<br>lable_number:{}'.format(label, label_number)
 
 
@@ -163,6 +209,16 @@ def test(foldname):
 def index():
     return render_template('index.html')
 
+
+@app.route("/robot", methods=['GET', 'POST'])
+def robot():
+    return render_template('robot.html')
+
+
+@app.route("/command", methods=['GET', 'POST'])
+def command():
+    print(command_num)
+    return "{},{}".format(robot_num, command_num)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True, ssl_context='adhoc')

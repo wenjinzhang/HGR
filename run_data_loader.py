@@ -8,7 +8,6 @@ from torchvision.transforms import *
 import json
 from model import ConvColumn
 
-
 # model.eval()
 IMG_EXTENSIONS = ['.jpg', '.JPG', '.jpeg', '.JPEG']
 with open('./configs/config2.json') as data_file:
@@ -35,7 +34,7 @@ class RunTimeDataSet(torch.utils.data.Dataset):
         self.is_val = False
 
     def __getitem__(self, index):
-        img_paths = self.get_frame_names('123292')
+        img_paths = self.get_frame_names('images/')
         imgs = []
         for img in self.IMGS_Array:
             # img = Image.open(img_path).convert('RGB')
@@ -54,8 +53,9 @@ class RunTimeDataSet(torch.utils.data.Dataset):
     def get_frame_names(self, path):
         frame_names = []
         frame_names.extend(
-            glob.glob(os.path.join('/home/wenjin/Documents/pycharmworkspace/20bn-jester-v1/' + path, "*" + '.jpg')))
+            glob.glob(os.path.join('/Users/zhangwenjin/PycharmProjects/HGR/' + path, "*" + '.png')))
         frame_names = list(sorted(frame_names))
+        print(frame_names)
         num_frames = len(frame_names)
         num_frames_necessary = 36
         # pick frames
@@ -63,7 +63,6 @@ class RunTimeDataSet(torch.utils.data.Dataset):
         if num_frames_necessary > num_frames:
             # pad last frame if video is shorter than necessary
             frame_names += [frame_names[-1]] * (num_frames_necessary - num_frames)
-
         frame_names = frame_names[0:num_frames_necessary:2]
         return frame_names
 
@@ -72,14 +71,13 @@ if __name__ == '__main__':
     # load config file
     with open('./configs/config2.json') as data_file:
         config = json.load(data_file)
-    device = torch.device("cuda")
-
+    device = torch.device("cpu")
     # init model
     # create model
     model = ConvColumn(config['num_classes'])
     # multi GPU setting
     model = torch.nn.DataParallel(model).to(device)
-    checkpoint = torch.load(config['checkpoint'])
+    checkpoint = torch.load(config['checkpoint'], map_location='cpu')
     start_epoch = checkpoint['epoch']
     best_prec1 = checkpoint['best_prec1']
     model.load_state_dict(checkpoint['state_dict'])
@@ -90,6 +88,8 @@ if __name__ == '__main__':
         batch_size=1, shuffle=False,
         num_workers=1, pin_memory=True)
 
+
+    print(len(loader.IMGS_Array))
     with torch.no_grad():
         for i, input in enumerate(val_loader):
             input = input.to(device)
