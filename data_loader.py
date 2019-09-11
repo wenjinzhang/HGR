@@ -6,7 +6,7 @@ import torch
 from PIL import Image
 from data_parser import JpegDataset
 from torchvision.transforms import *
-
+from natsort import natsorted
 IMG_EXTENSIONS = ['.jpg', '.JPG', '.jpeg', '.JPEG']
 
 
@@ -16,10 +16,10 @@ def default_loader(path):
 
 class VideoFolder(torch.utils.data.Dataset):
 
-    def __init__(self, root, csv_file_input, csv_file_labels, clip_size,
+    def __init__(self, root, optical_flow_folder, csv_file_input, csv_file_labels, clip_size,
                  nclips, step_size, is_val, transform=None,
                  loader=default_loader, include_optical_flow=False):
-        self.dataset_object = JpegDataset(csv_file_input, csv_file_labels, root)
+        self.dataset_object = JpegDataset(csv_file_input, csv_file_labels, root, optical_flow_folder)
 
         self.csv_data = self.dataset_object.csv_data
         self.classes = self.dataset_object.classes
@@ -58,8 +58,8 @@ class VideoFolder(torch.utils.data.Dataset):
         frame_names = []
         for ext in IMG_EXTENSIONS:
             frame_names.extend(glob.glob(os.path.join(path, "*" + ext)))
-        frame_names = list(sorted(frame_names))
 
+        frame_names = list(natsorted(frame_names))
         num_frames = len(frame_names)
 
         # set number of necessary frames
@@ -88,7 +88,7 @@ class VideoFolder(torch.utils.data.Dataset):
 def get_frame_names(path):
     frame_names = []
     frame_names.extend(glob.glob(os.path.join('/home/wenjin/Documents/pycharmworkspace/20bn-jester-v1/'+path, "*" + '.jpg')))
-    frame_names = list(sorted(frame_names))
+    frame_names = list(natsorted(frame_names))
     num_frames = len(frame_names)
     num_frames_necessary = 36
     # pick frames
