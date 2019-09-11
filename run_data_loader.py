@@ -13,8 +13,8 @@ IMG_EXTENSIONS = ['.jpg', '.JPG', '.jpeg', '.JPEG']
 with open('./configs/config2.json') as data_file:
     config = json.load(data_file)
 
-class RunTimeDataSet(torch.utils.data.Dataset):
 
+class RunTimeDataSet(torch.utils.data.Dataset):
     dataset_object = JpegDataset(config['train_data_csv'], config['labels_csv'], config['train_data_folder'])
 
     # Arrya for imgs

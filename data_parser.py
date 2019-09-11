@@ -3,23 +3,25 @@ import csv
 
 from collections import namedtuple
 
-ListDataJpeg = namedtuple('ListDataJpeg', ['id', 'label', 'path'])
+ListDataJpeg = namedtuple('ListDataJpeg', ['id', 'label', 'path', 'optical_flow_path'])
+
 
 class JpegDataset(object):
 
-    def __init__(self, csv_path_input, csv_path_labels, data_root):
+    def __init__(self, csv_path_input, csv_path_labels, data_root, data_optical_flow=None):
         self.classes = self.read_csv_labels(csv_path_labels)
         self.classes_dict = self.get_two_way_dict(self.classes)
-        self.csv_data = self.read_csv_input(csv_path_input, data_root)
+        self.csv_data = self.read_csv_input(csv_path_input, data_root, data_optical_flow)
 
-    def read_csv_input(self, csv_path, data_root):
+    def read_csv_input(self, csv_path, data_root, data_optical_flow):
         csv_data = []
         with open(csv_path) as csvfile:
             csv_reader = csv.reader(csvfile, delimiter=';')
             for row in csv_reader:
                 item = ListDataJpeg(row[0],
                                     row[1],
-                                    os.path.join(data_root, row[0])
+                                    os.path.join(data_root, row[0]),
+                                    os.path.join(data_optical_flow, row[0])
                                     )
                 if row[1] in self.classes:
                     csv_data.append(item)

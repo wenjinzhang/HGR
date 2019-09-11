@@ -102,6 +102,7 @@ def main():
     ])
 
     train_data = VideoFolder(root=config['train_data_folder'],
+                             optical_flow_folder=config['optical_flow_folder'],
                              csv_file_input=config['train_data_csv'],
                              csv_file_labels=config['labels_csv'],
                              clip_size=config['clip_size'],
@@ -120,6 +121,7 @@ def main():
         drop_last=True)
 
     val_data = VideoFolder(root=config['val_data_folder'],
+                           optical_flow_folder=config['optical_flow_folder'],
                            csv_file_input=config['val_data_csv'],
                            csv_file_labels=config['labels_csv'],
                            clip_size=config['clip_size'],
