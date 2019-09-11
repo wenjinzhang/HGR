@@ -36,7 +36,7 @@ def calculate_optical_flow(folder_name):
             hsv[..., 0] = ang * 180 / np.pi / 2
             hsv[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
             rgb = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-            target = "{}/{}/{}.jpg".format(target_dataset_folder, folder_name, count)
+            target = "{}/{}/{.4}.jpg".format(target_dataset_folder, folder_name, count)
             cv2.imwrite(target, rgb)
             count = count + 1
             previous_frame = next_frame

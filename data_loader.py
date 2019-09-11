@@ -59,6 +59,7 @@ class VideoFolder(torch.utils.data.Dataset):
         for ext in IMG_EXTENSIONS:
             frame_names.extend(glob.glob(os.path.join(path, "*" + ext)))
         frame_names = list(sorted(frame_names))
+
         num_frames = len(frame_names)
 
         # set number of necessary frames
@@ -99,8 +100,6 @@ def get_frame_names(path):
     frame_names = frame_names[0:num_frames_necessary:2]
     return frame_names
 
-
-
 if __name__ == '__main__':
     transform = Compose([
                         CenterCrop(84),
@@ -109,7 +108,8 @@ if __name__ == '__main__':
                             mean=[0.485, 0.456, 0.406],
                             std=[0.229, 0.224, 0.225])
                         ])
-    loader = VideoFolder(root="/home/wenjin/Documents/pycharmworkspace/20bn-jester-v1",
+    loader = VideoFolder(root="D://pycharmproject//gesture_recognition//20bn-jester-v1",
+
                          csv_file_input="./20bn-jester-v1/annotations/jester-v1-train.csv",
                          csv_file_labels="./20bn-jester-v1/annotations/jester-v1-labels2.csv",
                          clip_size=18,
