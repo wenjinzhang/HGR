@@ -18,7 +18,7 @@ class VideoFolder(torch.utils.data.Dataset):
 
     def __init__(self, root, csv_file_input, csv_file_labels, clip_size,
                  nclips, step_size, is_val, transform=None,
-                 loader=default_loader):
+                 loader=default_loader, include_optical_flow=False):
         self.dataset_object = JpegDataset(csv_file_input, csv_file_labels, root)
 
         self.csv_data = self.dataset_object.csv_data
@@ -32,6 +32,7 @@ class VideoFolder(torch.utils.data.Dataset):
         self.nclips = nclips
         self.step_size = step_size
         self.is_val = is_val
+        self.include_optical_flow = include_optical_flow
 
     def __getitem__(self, index):
         item = self.csv_data[index]
@@ -79,6 +80,7 @@ class VideoFolder(torch.utils.data.Dataset):
                 offset = np.random.randint(0, diff)
         frame_names = frame_names[offset:num_frames_necessary +
                                   offset:self.step_size]
+
         return frame_names
 
 
