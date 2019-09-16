@@ -1,6 +1,6 @@
 {
-    "model_name": "jester_conv_example",
-    "checkpoint": "trainings/jpeg_model/jester_conv_example/checkpoint.pth.tar",
+    "model_name": "jester_conv_optical_flow",
+    "checkpoint": "trainings/jpeg_model/jester_conv_optical_flow/checkpoint.pth.tar",
 
     "train_data_folder": "D://pycharmproject//gesture_recognition//20bn-jester-v1",
     "optical_flow_folder": "D://pycharmproject//gesture_recognition//20bn-jester-v1_optical_flow",
@@ -9,12 +9,12 @@
     "val_data_csv": "./20bn-jester-v1/annotations/jester-v1-validation.csv",
     "labels_csv": "./20bn-jester-v1/annotations/jester-v1-labels.csv",
 
-    "num_workers": 10,
+    "num_workers": 3,
 
     "output_dir": "trainings/jpeg_model/",
 
     "num_classes": 27,
-    "batch_size": 10,
+    "batch_size": 8,
     "clip_size": 18,
     "nclips": 1,
     "step_size": 2,

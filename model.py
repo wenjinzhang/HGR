@@ -6,7 +6,7 @@ class ConvColumn(nn.Module):
     def __init__(self, num_classes):
         super(ConvColumn, self).__init__()
 
-        self.conv_layer1 = self._make_conv_layer(3, 64, (1, 2, 2), (1, 2, 2))
+        self.conv_layer1 = self._make_conv_layer(6, 64, (1, 2, 2), (1, 2, 2))
         self.conv_layer2 = self._make_conv_layer(64, 128, (2, 2, 2), (2, 2, 2))
         self.conv_layer3 = self._make_conv_layer(
             128, 256, (2, 2, 2), (2, 2, 2))

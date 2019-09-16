@@ -8,7 +8,7 @@ from data_parser import JpegDataset
 from torchvision.transforms import *
 from natsort import natsorted
 IMG_EXTENSIONS = ['.jpg', '.JPG', '.jpeg', '.JPEG']
-
+cache_path = "cache"
 
 def default_loader(path):
     return Image.open(path).convert('RGB')
@@ -34,22 +34,47 @@ class VideoFolder(torch.utils.data.Dataset):
         self.is_val = is_val
         self.include_optical_flow = include_optical_flow
 
+    # try to add cache, don't process one item twice.
     def __getitem__(self, index):
+        if not os.path.exists(cache_path):
+            os.makedirs(cache_path)
+
+        cache_location = os.path.join(cache_path, "{}.sample".format(index))
+        if os.path.isfile(cache_location):
+            # print("use cache!")
+            return torch.load(cache_location)
+
         item = self.csv_data[index]
         img_paths = self.get_frame_names(item.path)
-
+        optical_flow_paths = self.get_frame_names(item.optical_flow_path)
         imgs = []
-        for img_path in img_paths:
-            img = self.loader(img_path)
+        optical_flows = []
+
+        for i in range(len(img_paths)):
+            img = self.loader(img_paths[i])
             img = self.transform(img)
             imgs.append(torch.unsqueeze(img, 0))
+
+            optical_flow = self.loader(optical_flow_paths[i])
+            optical_flow = self.transform(optical_flow)
+            optical_flows.append(torch.unsqueeze(optical_flow, 0))
+
+        # for img_path in img_paths:
+        #     img = self.loader(img_path)
+        #     img = self.transform(img)
+        #     imgs.append(torch.unsqueeze(img, 0))
 
         target_idx = self.classes_dict[item.label]
 
         # format data to torch
-        data = torch.cat(imgs)
+        imgs = torch.cat(imgs)
+        optical_flows =torch.cat(optical_flows)
+        data = torch.cat((imgs, optical_flows), 1)
         data = data.permute(1, 0, 2, 3)
-        return (data, target_idx)
+        sample = (data, target_idx)
+        if index < 70000:
+            torch.save(sample, cache_location)
+        return sample
 
     def __len__(self):
         return len(self.csv_data)
@@ -109,7 +134,7 @@ if __name__ == '__main__':
                             std=[0.229, 0.224, 0.225])
                         ])
     loader = VideoFolder(root="D://pycharmproject//gesture_recognition//20bn-jester-v1",
-
+                         optical_flow_folder="D://pycharmproject//gesture_recognition//20bn-jester-v1_optical_flow",
                          csv_file_input="./20bn-jester-v1/annotations/jester-v1-train.csv",
                          csv_file_labels="./20bn-jester-v1/annotations/jester-v1-labels2.csv",
                          clip_size=18,
@@ -122,7 +147,7 @@ if __name__ == '__main__':
     data_item, target_idx = loader[0]
     # save_images_for_debug("input_images", data_item.unsqueeze(0))
     print(data_item)
-
+    print(data_item.shape)
 
     train_loader = torch.utils.data.DataLoader(
         loader,
