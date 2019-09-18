@@ -8,7 +8,8 @@ ListDataJpeg = namedtuple('ListDataJpeg', ['id', 'label', 'path', 'optical_flow_
 
 class JpegDataset(object):
 
-    def __init__(self, csv_path_input, csv_path_labels, data_root, data_optical_flow=None):
+    def __init__(self, csv_path_input, csv_path_labels, data_root, data_optical_flow=None, is_label=True):
+        self.is_label =is_label
         self.classes = self.read_csv_labels(csv_path_labels)
         self.classes_dict = self.get_two_way_dict(self.classes)
         self.csv_data = self.read_csv_input(csv_path_input, data_root, data_optical_flow)
@@ -18,12 +19,20 @@ class JpegDataset(object):
         with open(csv_path) as csvfile:
             csv_reader = csv.reader(csvfile, delimiter=';')
             for row in csv_reader:
-                item = ListDataJpeg(row[0],
-                                    row[1],
-                                    os.path.join(data_root, row[0]),
-                                    os.path.join(data_optical_flow, row[0])
-                                    )
-                if row[1] in self.classes:
+                if self.is_label:
+                    item = ListDataJpeg(row[0],
+                                        row[1] if len(row) == 2 else "",
+                                        os.path.join(data_root, row[0]),
+                                        os.path.join(data_optical_flow, row[0])
+                                        )
+                    if row[1] in self.classes:
+                        csv_data.append(item)
+                else:
+                    item = ListDataJpeg(row[0],
+                                        None,
+                                        os.path.join(data_root, row[0]),
+                                        os.path.join(data_optical_flow, row[0])
+                                        )
                     csv_data.append(item)
         return csv_data
 

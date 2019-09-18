@@ -5,7 +5,7 @@ from PIL import Image
 from io import BytesIO
 import json
 from model import ConvColumn
-from torchvision.transforms import *
+from torchvision.transforms import Compose, CenterCrop, ToTensor, Normalize
 import torch
 import numpy as np
 from data_parser import JpegDataset
